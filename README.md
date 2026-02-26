@@ -151,9 +151,10 @@ file_reader = usb_drive
 2. 既定のマウント先(`/mnt/usbdrive`)を使う場合はそのままでOKです。
 複数挿すと`/mnt/usbdrive0`, `/mnt/usbdrive1`が順に作成されます。
 
-必要なら`/boot/video_looper.ini`でマウント先や読み取り専用を調整できます:
+USBは **デフォルトで読み取り専用** でマウントされます（信頼性のため推奨）。  
+書き込み可能にしたい場合や、マウント先を変更したい場合は `/boot/video_looper.ini` で調整できます:
 
-```
+```ini
 [usb_drive]
 mount_path = /mnt/usbdrive
 readonly = true
@@ -236,18 +237,20 @@ lsblk
 
 **macOS:**
 ```bash
-sudo dd if=/dev/disk2 of=~/pi-videolooper-image.img bs=1m
+sudo dd if=/dev/disk2 of="$HOME/pi-videolooper-image.img" bs=1m
 ```
 
 **Linux:**
 ```bash
-sudo dd if=/dev/sdb of=~/pi-videolooper-image.img bs=1M status=progress
+sudo dd if=/dev/sdb of="$HOME/pi-videolooper-image.img" bs=1M status=progress
 ```
+
+**注意:** `dd`は空き領域を含めてディスク全体サイズ分コピーします。
 
 4. 圧縮して保存:
 
 ```bash
-gzip ~/pi-videolooper-image.img
+gzip "$HOME/pi-videolooper-image.img"
 ```
 
 作成される `pi-videolooper-image.img.gz` を保管します。
@@ -274,7 +277,7 @@ gunzip pi-videolooper-image.img.gz
 入力ディレクトリ配下の`.mp4`を再帰的に処理し、出力先はフラットに保存します:
 
 ```bash
-SRC=/path/to/mp4 DIR=/path/to/out; find "$SRC" -type f -name '*.mp4' -print0 | while IFS= read -r -d '' f; do ffmpeg -hide_banner -loglevel error -i "$f" -c:v copy -an -bsf:v h264_mp4toannexb "$DIR/$(basename "${f%.*}").h264"; done
+SRC=/path/to/mp4; DIR=/path/to/out; find "$SRC" -type f -name '*.mp4' -exec sh -c 'ffmpeg -hide_banner -loglevel error -y -i "$1" -c:v copy -an -bsf:v h264_mp4toannexb "$2/$(basename "${1%.*}").h264"' _ {} "$DIR" \;
 ```
 
-同名ファイルがあると上書きされるので、必要なら出力名のルールを変更してください。
+同名ファイルがあると上書きされるため、上書きしたくない場合は`-y`を`-n`に変更してください。
