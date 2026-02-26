@@ -93,7 +93,31 @@ sudo cp hello_video.bin /usr/local/bin/
 sudo chmod +x /usr/local/bin/hello_video.bin
 ```
 
-## 6. hello_videoエンジンの設定
+## 6. video_playerの選択
+
+pi_video_looperは複数のプレイヤーから選択できます。各プレイヤーの特徴と用途は以下の通りです：
+
+### omxplayer（デフォルト）
+- 対応形式: .mp4, .avi等の汎用動画形式
+- 音声: フル対応
+- 特徴: 動画切り替え時に～100ms程度の黒画面が入る
+- 用途: 音声付き長編動画、通常の再生
+
+### hello_video（このプロジェクト推奨）
+- 対応形式: H.264 Annex B形式のみ
+- 音声: なし
+- 特徴: 切り替えがシームレス（黒画面なし）、軽量
+- 用途: **短尺動画のランダム連続表示**
+- 選択理由: 短い動画を次々切り替える場合、omxplayerの黒画面が会話中に目立つため
+
+### image_player
+- 対応形式: .jpg, .png等の画像
+- 特徴: スライドショー表示
+- 用途: デジタルサイネージの静止画ループ
+
+**このプロジェクトでは短尺動画をランダム表示する想定のため、黒画面が目立たない `hello_video` を採用しています。**
+
+## 7. hello_videoエンジンの設定
 
 設定ファイルを作成してエンジンを`hello_video`に変更:
 
@@ -111,7 +135,7 @@ is_random = true
 #is_random_unique = true
 ```
 
-## 7. 動画配置方法の選択
+## 8. 動画配置方法の選択
 
 2つの方法があります：
 
@@ -160,7 +184,7 @@ mount_path = /mnt/usbdrive
 readonly = true
 ```
 
-## 8. 動作確認
+## 9. 動作確認
 
 `./install.sh`を実行すると、supervisorでサービスとして自動起動するように設定されます。
 再起動後、自動的に動画再生が始まります。
@@ -183,7 +207,55 @@ sudo supervisorctl restart video_looper
 sudo tail -f /var/log/supervisor/video_looper-stdout*
 ```
 
-## 9. 自動起動の制御
+**ログが少ない理由:**
+起動後に「Starting Adafruit Video Looper.」のみが表示されるのは正常です。これは動画ファイルの読み込み待機中の状態です。
+
+**詳細ログを有効にする（デバッグ時）:**
+
+`/boot/video_looper.ini`に以下を追加:
+
+```ini
+[video_looper]
+console_output = true
+```
+
+この設定により、ファイル検出、再生開始/終了、エラーなどが詳細に記録されます。
+
+**ログに表示される情報例:**
+- 動画ファイルの検出状況
+- 再生開始/終了のタイミング
+- フォーマットエラー（H.264 Annex B形式でない場合）
+- USBマウント/アンマウントの検出
+
+### 9-1. 問題のある動画ファイルの特定
+
+動画が乱れたり正しく再生されない場合、ログから問題のあるファイルを特定できます。
+
+1. `console_output = true`を有効にしてログを監視:
+
+```bash
+sudo tail -f /var/log/supervisor/video_looper-stdout*
+```
+
+2. 再生エラーが出た場合、ログにファイル名が表示されます。そのファイルを削除または修正します。
+
+3. **事前に動画ファイルを検証する（推奨）:**
+
+hello_videoはH.264 Annex B形式に厳密なため、事前にffmpegで検証できます:
+
+```bash
+# 単一ファイルの検証
+ffmpeg -v error -i /path/to/video.h264 -f null - 2>&1
+
+# ディレクトリ内の全ファイルをチェック
+find /path/to/videos -name '*.h264' -exec sh -c 'echo "Checking: $1"; ffmpeg -v error -i "$1" -f null - 2>&1 || echo "ERROR in $1"' _ {} \;
+```
+
+エラーが出た動画は再エンコードまたは削除します。
+
+**ヒント:** hello_videoはH.264 Annex B形式のみ対応のため、`.mp4`を直接使うと再生できません。必ずセクション12の変換手順でAnnex B形式（`.h264`）に変換してください。
+
+## 10. 自動起動の制御
 
 `./install.sh`でsupervisorによる自動起動が設定済みです。
 
@@ -207,7 +279,7 @@ sudo systemctl start supervisor
 sudo supervisorctl status video_looper
 ```
 
-## 10. イメージの作成と複製
+## 11. イメージの作成と複製
 
 動作確認済みのRaspberry PiからSDカードイメージを作成すれば、他のSDカードに複製して即座にセットアップ完了状態で使えます。
 
@@ -269,7 +341,7 @@ gunzip pi-videolooper-image.img.gz
 
 **注意:** 複製したイメージのホスト名やSSH鍵は元のものと同じなので、必要に応じて`raspi-config`で変更してください。
 
-## 11. mp4をhello_video用のh264 (Annex B) に変換
+## 12. mp4をhello_video用のh264 (Annex B) に変換
 
 `hello_video`はAnnex B形式のH.264ストリームが必要です。
 既にH.264エンコード済みの.mp4を、音声を除外して`.h264`に変換します。
