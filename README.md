@@ -296,7 +296,7 @@ sudo supervisorctl status video_looper
 
 動作確認済みのRaspberry PiからSDカードイメージを作成すれば、他のSDカードに複製して即座にセットアップ完了状態で使えます。
 
-### 10-1. イメージの作成 (macOS/Linux)
+### 11-1. イメージの作成 (Linux)
 
 1. Raspberry Piをシャットダウン:
 
@@ -304,35 +304,41 @@ sudo supervisorctl status video_looper
 sudo shutdown -h now
 ```
 
-2. SDカードをPCに挿入し、デバイス名を確認:
+2. SDカードをLinux PCに挿入し、デバイス名を確認:
 
-**macOS:**
-```bash
-diskutil list
-```
-
-**Linux:**
 ```bash
 lsblk
 ```
 
-デバイス名の例: `/dev/disk2` (macOS) / `/dev/sdb` (Linux)
+デバイス名の例: `/dev/sdb`（パーティション`/dev/sdb1`, `/dev/sdb2`ではなく、ディスク全体）
 
 3. イメージを作成:
 
-**macOS:**
 ```bash
-sudo dd if=/dev/disk2 of="$HOME/pi-videolooper-image.img" bs=1m
+sudo dd if=/dev/sdb of="$HOME/pi-videolooper-image.img" bs=4M status=progress
 ```
 
-**Linux:**
+**注意:** `dd`は空き領域を含めてSDカード全体サイズ分コピーします（例：32GBのSDなら32GB）。
+
+4. PiShrinkでイメージを縮小:
+
+`dd`で作成したイメージは、使用済み容量に関わらずSDカード全体のサイズになります。PiShrinkを使うことで、実際の使用容量に応じたサイズまで縮小できます。
+
 ```bash
-sudo dd if=/dev/sdb of="$HOME/pi-videolooper-image.img" bs=1M status=progress
+# PiShrinkのダウンロード
+wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
+chmod +x pishrink.sh
+
+# イメージの縮小
+sudo ./pishrink.sh "$HOME/pi-videolooper-image.img"
 ```
 
-**注意:** `dd`は空き領域を含めてディスク全体サイズ分コピーします。
+PiShrinkは以下を実行します：
+- 未使用領域の削除
+- パーティションサイズの最適化
+- 初回起動時に自動的にSDカード全体に拡張するよう設定
 
-4. 圧縮して保存:
+5. 圧縮して保存:
 
 ```bash
 gzip "$HOME/pi-videolooper-image.img"
@@ -340,7 +346,7 @@ gzip "$HOME/pi-videolooper-image.img"
 
 作成される `pi-videolooper-image.img.gz` を保管します。
 
-### 10-2. イメージからの複製
+### 11-2. イメージからの複製
 
 1. 圧縮イメージを解凍（balenaEtcherなら不要）:
 
@@ -352,7 +358,9 @@ gunzip pi-videolooper-image.img.gz
 
 3. SDカードをRaspberry Piに挿入して起動すれば、セットアップ済み状態で動作します
 
-**注意:** 複製したイメージのホスト名やSSH鍵は元のものと同じなので、必要に応じて`raspi-config`で変更してください。
+**注意:** 
+- 複製したイメージのホスト名やSSH鍵は元のものと同じなので、必要に応じて`raspi-config`で変更してください
+- PiShrinkで縮小したイメージは、初回起動時に自動的にSDカード全体に拡張されます
 
 ## 12. mp4をhello_video用のh264 (Annex B) に変換
 
