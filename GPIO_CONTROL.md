@@ -16,7 +16,7 @@ v1.0.14以降、pi_video_looperはGPIOピンを読み込んで、以下のアク
 
 ### ピン番号について
 
-ピン番号は **BOARD 番号** で指定します（BCM番号ではありません）。詳細は[Raspberry Pi GPIO 公式ドキュメント](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#gpio)を参照。
+ピン番号は **BOARD 番号（物理ピン番号）** で指定します（BCM番号ではありません）。詳細は[Raspberry Pi GPIO 公式ドキュメント](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#gpio)を参照。
 
 ### 配線方法
 
