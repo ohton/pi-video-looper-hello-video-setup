@@ -59,10 +59,16 @@ deb http://archive.raspberrypi.org/debian/ buster main
 sudo apt update
 ```
 
+ないと困る系インストール
+
+```bash
+sudo apt install -y vim tmux git
+```
+
 ## 4. 必要パッケージの導入
 
 ```bash
-sudo apt install -y git python3 python3-pip omxplayer vim
+sudo apt install -y python3 python3-pip omxplayer
 ```
 
 ## 5. pi_video_looperの導入
