@@ -59,12 +59,6 @@ deb http://archive.raspberrypi.org/debian/ buster main
 sudo apt update
 ```
 
-改めてVNC有効化など
-
-```bash
-sudo raspi-config
-```
-
 ## 4. 必要パッケージの導入
 
 ```bash
