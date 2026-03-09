@@ -37,6 +37,7 @@ sudo raspi-config
 - Locale/Timezone/Keyboardの設定
 - パスワード変更
 - SSHを有効化 (Interface Options)
+- Resolution (1920x1080)
 - 再起動
 
 ## 3. Legacy aptリポジトリの確認
