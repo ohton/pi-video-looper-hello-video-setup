@@ -74,7 +74,7 @@ sudo apt install -y python3 python3-pip omxplayer
 
 ## 5. pi_video_looperの導入
 
-`hello_video`が見つからない場合は、以下で再ビルドし、コピーします:
+`hello_video`を再ビルドし、/usr/local/bin/へコピーします:
 
 ```bash
 cd /opt/vc/src/hello_pi
@@ -87,21 +87,16 @@ sudo chmod +x /usr/local/bin/hello_video.bin
 
 ```bash
 cd ~
-git clone https://github.com/adafruit/pi_video_looper.git
+git clone https://github.com/ohton/pi_video_looper.git
 cd pi_video_looper
-vim Adafruit_Video_Looper/hello_video.py
-```
-
-```hello_video.py
--        args = ['hello_video.bin']
-+        args = ['/usr/local/bin/hello_video.bin']
+git checkout dev
 ```
 
 ```bash
-sudo ./install.sh
+sudo ./install.sh no_hello_video
 ```
 
-`hello_video`を使うため、`no_hello_video`オプションは付けません。
+`hello_video`は自分でインストール済みなのでno_hello_videoでインストールをスキップします。
 
 ## 6. video_playerの選択
 
