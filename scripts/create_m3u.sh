@@ -18,17 +18,25 @@ if [ ! -d "$TARGET_DIR" ]; then
     exit 1
 fi
 
-find "$TARGET_DIR" -type d | sort | while IFS= read -r dir; do
+list_visible_directories() {
+    find "$1" \( -type d -name '.*' \) -prune -o -type d -print
+}
+
+list_visible_h264_files() {
+    find "$1" \( -type d -name '.*' -o -type f -name '.*' \) -prune -o -type f -name "*.h264" -print
+}
+
+list_visible_directories "$TARGET_DIR" | sort | while IFS= read -r dir; do
     parent_dir="$(dirname "$dir")"
     folder_name="$(basename "$dir")"
     m3u_file="$parent_dir/$folder_name.m3u"
 
     # Skip if there are no .h264 files in this directory tree
-    if ! find "$dir" -type f -name "*.h264" | grep -q .; then
+    if ! list_visible_h264_files "$dir" | grep -q .; then
         continue
     fi
 
-    find "$dir" -type f -name "*.h264" | sort | while IFS= read -r file; do
+    list_visible_h264_files "$dir" | sort | while IFS= read -r file; do
         # Relative path from parent_dir (= same location as the m3u file)
         echo "${file#$parent_dir/}"
     done > "$m3u_file"
