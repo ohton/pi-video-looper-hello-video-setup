@@ -26,13 +26,18 @@ list_visible_h264_files() {
     find "$1" \( -type d -name '.*' -o -type f -name '.*' \) -prune -o -type f -name "*.h264" -print
 }
 
+has_visible_h264_files() {
+    # Use -print -quit to avoid pipefail issues with grep -q on large trees.
+    [ -n "$(find "$1" \( -type d -name '.*' -o -type f -name '.*' \) -prune -o -type f -name "*.h264" -print -quit)" ]
+}
+
 list_visible_directories "$TARGET_DIR" | sort | while IFS= read -r dir; do
     parent_dir="$(dirname "$dir")"
     folder_name="$(basename "$dir")"
     m3u_file="$parent_dir/$folder_name.m3u"
 
     # Skip if there are no .h264 files in this directory tree
-    if ! list_visible_h264_files "$dir" | grep -q .; then
+    if ! has_visible_h264_files "$dir"; then
         continue
     fi
 
